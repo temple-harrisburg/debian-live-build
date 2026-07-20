@@ -9,8 +9,14 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: "debian:trixie"
+      options: --privileged
 
     steps:
+      - name: Cache live-build files
+        uses: actions/cache@v6
+        with:
+          path: cache
+
       - name: Install Dependencies
         run: |
           apt-get update
@@ -36,5 +42,6 @@ jobs:
       - name: Create Release
         uses: softprops/actions-gh-release@v3
         with:
+          token: ${{ secrets.RUNNER_TOKEN }}
           files: |
             live-image-amd64.hybrid.iso
