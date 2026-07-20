@@ -1,1 +1,10 @@
 cache
+chroot
+local
+.build
+*.iso
+*.{files,contents,packages}
+build.log
+chroot.*
+binary*
+live-image-*.*
