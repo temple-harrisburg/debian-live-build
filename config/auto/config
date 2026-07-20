@@ -1,0 +1,9 @@
+#!/bin/bash 
+lb config noauto --mode debian \
+	--distribution trixie \
+	--system normal \
+	--source-image iso \
+	--apt-secure false \
+	--security false \
+	-m https://deb.debian.org/debian/ \
+	"${@}"
