@@ -34,7 +34,7 @@ jobs:
           lb build
 
       - name: Create Release
-        uses: softprops/actions-gh-release@v3
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             live-image-amd64.hybrid.iso
