@@ -1,0 +1,40 @@
+name: Release
+
+on:
+  push:
+    tags: ["*"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: "debian:trixie"
+
+    steps:
+      - name: Install Dependencies
+        run: |
+          apt-get update
+          apt-get install --yes \
+            grub \
+            debian-archive-keyring \
+            ca-certificates \
+            xorriso \
+            squashfs-tools \
+            isolinux \
+            syslinux-common \
+            debootstrap \
+            live-build
+
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Build
+        run: |
+          lb config
+          lb build
+
+      - name: Create Release
+        uses: softprops/actions-gh-release@v3
+        with:
+          files: |
+            live-image-amd64.hybrid.iso
