@@ -1,9 +1,30 @@
 #!/bin/bash 
-lb config noauto --mode debian \
+DEB_MIRROR="http://deb.debian.org/debian/"
+DEB_SECURITY_MIRROR="http://security.debian.org/debian-security/"
+lb config noauto --clean \
+	--mode debian \
 	--distribution trixie \
+	--debian-installer live \
+	--debian-installer-distribution trixie \
+	--debian-installer-gui true \
+	--architectures amd64 \
+	--binary-images iso-hybrid \
+	--binary-filesystem ext4 \
+	--checksums sha256 \
+	--source false \
 	--system normal \
-	--source-image iso \
-	--apt-secure false \
+	--firmware-binary true \
+	--firmware-chroot true \
+	--parent-mirror-bootstrap "${DEB_MIRROR}" \
+	--apt-indices false \
+	--apt-recommends false \
+	--apt-secure true \
+	--backports true \
 	--security false \
-	-m https://deb.debian.org/debian/ \
-	"${@}"
+	--archive-areas "main contrib non-free non-free-firmware" \
+	--apt-options "--yes \
+--option=Dpkg::Options::=--force-confdef \
+--option=Dpkg::Options::=--force-confold \
+--option=Dpkg::Options::=--force-unsafe-io" \
+	--linux-packages "linux-image linux-headers" \
+	 "${@}"
