@@ -35,8 +35,10 @@ jobs:
 
       - name: Build
         run: |
+          set -eux
           lb config
           lb build
+          ls -alh
 
       - name: Create Release
         uses: softprops/action-gh-release@v3
