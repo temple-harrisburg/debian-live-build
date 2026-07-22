@@ -16,11 +16,9 @@ lb config noauto --clean \
 	--source false \
 	--system normal \
 	--firmware-binary true \
-	--firmware-chroot true \
+	--firmware-chroot false \
 	--parent-mirror-bootstrap "${DEB_MIRROR}" \
-	--apt-indices false \
 	--apt-recommends false \
-	--apt-secure true \
 	--backports true \
 	--security false \
 	--archive-areas "main contrib non-free non-free-firmware" \
