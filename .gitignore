@@ -9,3 +9,5 @@ chroot.*
 binary*
 live-image-*.*
 config/{hooks,common,source,bootstrap}
+config/hooks
+config/{bootstrap,common,source}
