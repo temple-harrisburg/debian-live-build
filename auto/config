@@ -4,9 +4,11 @@ DEB_SECURITY_MIRROR="http://security.debian.org/debian-security/"
 lb config noauto --clean \
 	--mode debian \
 	--distribution trixie \
-	--debian-installer live \
+	--debian-installer netinst \
 	--debian-installer-distribution trixie \
-	--debian-installer-gui true \
+	--debian-installer-gui false \
+	--bootloaders grub-efi \
+	--bootappend-live "boot=live toram=filesystem.squashfs components locales=en_US.UTF-8 hostname=livebuild username=tuhadmin user-fullname=tuhadmin timezone=America/New_York persistence persistence-encryption=luks persistence-media=removable-usb" \
 	--architectures amd64 \
 	--binary-images iso-hybrid \
 	--binary-filesystem ext4 \
