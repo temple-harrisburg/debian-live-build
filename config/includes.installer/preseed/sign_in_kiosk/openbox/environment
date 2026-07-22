@@ -1,0 +1,2 @@
+export SKIP_CONFIG="0"
+export NVM_DIR="${HOME}/.nvm"

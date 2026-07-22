@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+if [ "${SKIP_SETUP:-0}" -lt 1 ]; then
+    zutty -T "Kiosk Setup" -e $(realpath ~/setup.sh)
+else
+    start
+fi
