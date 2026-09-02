@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 
-# /usr/bin/start_interface --> $HOME/start_interface.sh
+# /usr/bin/start_interface
 # 
 # Load Kramer variables from setup script and start Chromium in kiosk mode
 

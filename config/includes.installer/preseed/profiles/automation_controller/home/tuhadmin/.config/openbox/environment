@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+#
+# $HOME/.config/openbox/environment
+#
+# Load environment variables specified in the saved config file.
+#
+
 export CONFIG_FILE="${CONFIG_FILE:="${HOME}/.kramer_config"}"
 
 # Variables for automation controller
