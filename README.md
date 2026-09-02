@@ -1,6 +1,33 @@
 # debian-live-build
 Config repository for use with live-build utility
 
+## Usage
+
+### Burn an image to USB
+1. Download the latest release from the [releases page](https://github.com/temple-harrisburg/debian-live-build/releases)
+2. Insert your installation medium (likely USB flash drive)
+3. Use a program such as Rufus or `dd` to burn the downloaded ISO image to the install medium
+
+### Build
+> [!IMPORTANT]
+> Building has only been confirmed to work on Debian. Building on different OSs can be achieved via a Debian Docker container or Virtual Machine.
+
+1. Install `live-build`
+```sh
+sudo apt update
+sudo apt install live-build
+```
+
+2. Run `lb config` with this repository's `main` branch as the config source
+```sh
+lb config --config https://github.com/temple-harrisburg/debian-live-build::main
+```
+
+3. Build image
+```
+sudo lb build
+```
+
 ## Directories
 
 ### `/config`
