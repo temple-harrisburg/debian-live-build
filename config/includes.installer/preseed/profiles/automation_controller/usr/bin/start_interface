@@ -18,4 +18,4 @@ chromium --kiosk --disable-gpu --noerrdialogs --disable-infobars --disable-featu
     --disable-extensions --disable-crash-reporter --disable-pdf-extension --disable-new-tab-first-run \
     --disable-dev-shm-usage --start-maximized --mute-audio --disable-crashpad --hide-scrollbars \
     --ash-hide-cursor --memory-pressure-off --force-device-scale-factor=1 --window-position=0,0 \
-    "http://${KRAMER_IP}?immersive=${KRAMER_IMMERSIVE}" &
+    "http://${KRAMER_INTERFACE_IP}:${KRAMER_INTERFACE_PORT}/?immersive=${KRAMER_INTERFACE_IMMERSIVE}"

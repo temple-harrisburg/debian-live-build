@@ -1,206 +1,259 @@
 #!/usr/bin/env bash
 # 
 # /usr/bin/setup
+#
+# This script provides a basic interactive interface for setting
+# options related to the Kramer Controller interface, networking,
+# and dependencies.
 # 
-# Runs on first login of newly installed
-# automation controller. Once first config is
-# saved, "$SKIP_SETUP" is set to '1' and this
-# script is skipped unless manually invoked.
+# Unless an environment variable SKIP_SETUP is 
+# present and greater than 0, this script is invoked 
+# automatically on login by ~/.config/openbox/autostart
+#
+#
 
 # Location to save Kramer interface variables
 export CONFIG_FILE="${CONFIG_FILE:-"$HOME/.kramer_config"}"
 
-if [ -f "$CONFIG_FILE" ]; then 
-    # shellcheck disable=SC1090
-    . "$CONFIG_FILE"
-fi
+function load_config () {
+	CONFIG_FILE="${1}"
+	if [ "${#@}" -eq 0 ]; then 
+		echo "Must provide a config file to load" >&2
+		return 1
+	fi
 
-export SKIP_SETUP="${SKIP_SETUP:="0"}"
-
-# Default Kramer connection variables
-export KRAMER_CONNECTION_NAME="${KRAMER_CONNECTION_NAME:="kramer"}"
-export KRAMER_CONNECTION_IP="${KRAMER_CONNECTION_IP:="192.168.0.5/16"}"
-
-# Kramer web interface variables
-export KRAMER_INTERFACE_PORT="${KRAMER_INTERFACE_PORT:=8000}"
-export KRAMER_INTERFACE_PAGE="${KRAMER_INTERFACE_PAGE:=""}"
-export KRAMER_INTERFACE_IMMERSIVE="${KRAMER_INTERFACE_IMMERSIVE:="true"}"
-# export SCREEN_TIMEOUT="${SCREEN_TIMEOUT:="15"}"
-
-function save_config () {
-    # Write variables to config file
-    cat << EOF > "$CONFIG_FILE"
-export SKIP_SETUP="1"
-export KRAMER_CONNECTION_IP="${KRAMER_CONNECTION_IP}"
-export KRAMER_INTERFACE_PORT="${KRAMER_INTERFACE_PORT}"
-export KRAMER_INTERFACE="${KRAMER_INTERFACE}"
-export KRAMER_INTERFACE_PAGE="${KRAMER_INTERFACE_PAGE}"
-export KRAMER_INTERFACE_IMMERSIVE="${KRAMER_INTERFACE_IMMERSIVE}"
-EOF
+	if [ -f "${CONFIG_FILE}" ]; then
+		. "${CONFIG_FILE}"
+		return 0
+	else
+		echo "File not found: ${CONFIG_FILE}" >&2
+	fi
 }
 
-function print_config() {
-   cat << EOF
-KRAMER_CONNECTION_IP="${KRAMER_CONNECTION_IP}"
-KRAMER_INTERFACE="${KRAMER_INTERFACE}"
-KRAMER_INTERFACE_PAGE="${KRAMER_INTERFACE_PAGE}"
-KRAMER_INTERFACE_IMMERSIVE="${KRAMER_INTERFACE_IMMERSIVE}"
-EOF
+function print_config () {
+	env | grep "(KRAMER_*|SKIP_SETUP)"
 }
 
-#function set_host_ip () {
-    # # Get available interfaces
-    # readarray -t INTERFACES < <(nmcli --colors no --get-value Name connection)
-    # INTERFACES_COUNT=$(( ${#INTERFACES[@]} - 1 ))
-    # SELECTED_INTERFACE_INDEX=-1
-    #
-    # # Re-prompt for index until input is valid (numeric and within range)
-    # while ! [[ "$SELECTED_INTERFACE_INDEX" =~ ^[0-9]+$ ]] \
-    #     || [ "$SELECTED_INTERFACE_INDEX" -lt 0 ] \
-    #     || [ "$SELECTED_INTERFACE_INDEX" -gt "$INTERFACES_COUNT" ]; 
-    # do
-    #     clear
-    #     echo 'Select interface'
-    #     for i in "${!INTERFACES[@]}"; do 
-    #         echo "    $i) ${INTERFACES[$i]}"
-    #     done
-    #     read -r -p "Select [0-$INTERFACES_COUNT]: " SELECTED_INTERFACE_INDEX
-    # done
-    #
-    # SELECTED_INTERFACE="${INTERFACES[$SELECTED_INTERFACE_INDEX]}"
-    #
-    # if [ -z "${SELECTED_INTERFACE}" ]; then 
-    #     echo "No interface was selected"
-    #     read -r -p "Press [Enter] to quit"
-    #     return 1
-    # fi 
-    #
-    # CURRENT_IP=$(nmcli connection show "${SELECTED_INTERFACE}" | awk '$1=="ipv4.addresses:"{ print $2 }')
-    #
-    # NEW_IP=""
-    #
-    # # Re-prompt for IP until input is valid
-    # # WARNING: this regex allows invalid IPs (e.g. (000.000.000.000)).
-    # while ! [[ "$NEW_IP" =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\/[0-9]{1,2}$ ]]; 
-    # do
-    #     echo "Selected Interface: ${SELECTED_INTERFACE}"
-    #     echo "Current IP: ${CURRENT_IP}"
-    #     echo "Enter new IP in CIDR notation (ex: 192.168.1.100/24)"
-    #     read -r -p "New IP: " NEW_IP
-    # done
-    #
-    # nmcli con mod "${SELECTED_INTERFACE}" \
-    #     ipv4.method manual \
-    #     ipv4.addresses "${NEW_IP}" \
-    #     ipv4.gateway "${KRAMER_CONNECTION_IP}" \
-    #     ipv4.dns "${KRAMER_CONNECTION_IP}"
-    #
-    # nmcli con down "${SELECTED_INTERFACE}"
-    # nmcli con up "${SELECTED_INTERFACE}"
-    # read -r -p "Press [Enter] to continue"
-#}
+function confirm_skip_setup () {
+	if [ ! -v SKIP_SETUP ] || (( SKIP_SETUP < 1 )); then
+		read -r -p "Skip setup on next login? (y/n): " choice
+		if [ "${choice}" = 'y' ]; then
+			if sed -i "s/\(SKIP_SETUP=\).*/\11/g" "${CONFIG_FILE}"; then
+				echo "Saved"
+			else
+				echo "Failed to update SKIP_CONFIG"
+			fi
+		fi
+	fi
+}
 
-# function set_screen_timeout() {
-#     clear
-#
-#     echo "Current settings:"
-#     echo
-#     # --- START COPILOT-GENERATED SCRIPT
-#     xset q | awk '/^DPMS/{ found=1; next }
-#     found {
-#         for (i = 1; i <= NF; i++) {
-#             if ($i ~ /^Standby:/) print "Standby: " $(i+1);
-#             else if ($i ~ /^Suspend:/) print "Suspend: " $(i+1);
-#             else if ($i ~ /^Off:/) print "Off: " $(i+1);
-#         }
-#     }'
-#     # --- END COPILOT-GENERATED SCRIPT
-#     echo
-#     read -r -p "New Screen Blank Timeout (seconds) [$SCREEN_TIMEOUT]: " input_time
-#     SCREEN_TIMEOUT=${input_time:-$SCREEN_TIMEOUT}
-#     xset s "$SCREEN_TIMEOUT" "$SCREEN_TIMEOUT" 
-#     xset dmps "$SCREEN_TIMEOUT" "$SCREEN_TIMEOUT" "$SCREEN_TIMEOUT"
-# }
+function confirm_toggle_network () {	
+	ACTIVE=$(get_active_ethernet_connection)
+	if [ ! "${ACTIVE}" = "kramer" ]; then
+		read -r -p "'kramer' is not the active network connection. Enable the 'kramer' network? y/n: " choice
+		if [ "${choice}" = 'y' ]; then
+			toggle_kramer_network "on"
+		fi
+	fi
+}
 
-function set_options () {
-    clear
-    echo "Current config: "
-    echo
-    print_config
-    echo
 
-    read -r -p "Enter Kramer Brain IP (Leave blank for default) [$KRAMER_CONNECTION_IP]: " input_ip
-    KRAMER_CONNECTION_IP=${input_ip:-$KRAMER_CONNECTION_IP}
+function modify_interface_options () {
 
-    read -r -p "Enter Kramer Brain Port (Leave blank for default) [$KRAMER_INTERFACE_PORT]: " input_ip
-    KRAMER_INTERFACE_PORT=${input_PORT:-$KRAMER_INTERFACE_PORT}
- 
-    read -r -p "Enter Start Page Name (Leave blank for default) [$KRAMER_INTERFACE_PAGE]: " input_page
-    KRAMER_INTERFACE_PAGE=${input_page:-$KRAMER_INTERFACE_PAGE}
- 
-    read -r -p "Use Immersive Mode (true/false) [$KRAMER_INTERFACE_IMMERSIVE]: " input_imm
-    KRAMER_INTERFACE_IMMERSIVE=${input_imm:-$KRAMER_INTERFACE_IMMERSIVE}
- 
-    echo "New config: "
-    print_config
-    echo
+	function handle_update () {
+		KEY="${1}"
+		read -r -p "Enter new value for $KEY: " NEW_VAL
+		if ! sed -i "s/\(${KEY}=\).*$/\1${NEW_VAL}/g" $CONFIG_FILE; then
+			echo "Failed to update $KEY"
+		else
+			echo "Set $KEY to $NEW_VAL"
+		fi
+		echo
+		read -r -p "[Enter] to continue."
+	}
 
-    unset choice
-    while [ -z "$choice" ]; do 
-        read -r -p "Save these settings to \"${CONFIG_FILE}\"? (y/n) " choice
+
+	while true; do
+		load_config "${CONFIG_FILE}"
+		clear
+		echo "---- Kramer Interface Settings ----"
+		echo
+		echo "1) Kramer Controller IP ($KRAMER_INTERFACE_IP)"
+		echo "2) Kramer Controller Port ($KRAMER_INTERFACE_PORT)"
+		echo "3) Immersive Browser View ($KRAMER_INTERFACE_IMMERSIVE)"
+		echo "4) Page ($KRAMER_INTERFACE_PAGE)"
+		echo
+
+		read -r -p "Select [1-4] to modify. Enter any other key to quit :" choice
+
+		case $choice in
+			1) handle_update "KRAMER_INTERFACE_IP" ;;
+			2) handle_update "KRAMER_INTERFACE_PORT" ;; 
+			3) handle_update "KRAMER_INTERFACE_IMMERSIVE" ;;
+			4) handle_update "KRAMER_INTERFACE_PAGE" ;;
+			*)
+				break
+			;;
+		esac
+
+	done
+}
+
+function modify_kramer_network_profile () {
+	CONNECTION_NAME="kramer"
+
+	function handle_update () {
+		FIELD_LABEL="${1}"
+		FIELD_KEY="${2}"
+		read -r -p "Enter new value for $FIELD_LABEL: " NEW_VALUE
+		if ! nmcli connection modify "${CONNECTION_NAME}" "${FIELD_KEY}" "${NEW_VALUE}"; then
+			echo "Failed to update $FIELD_LABEL"
+		else
+			echo "Updated $FIELD_LABEL to $NEW_VALUE"
+		fi
+		read -r -p "[Enter] to continue"
+	}
+
+	
+
+
+    while true; do
+	    mapfile -t FIELDS < <(nmcli --fields ipv4.addresses,ipv4.gateway,ipv4.dns connection show kramer | awk '{ print $2 }')
+	    IPV4_ADDRESSES="${FIELDS[0]}"
+	    IPV4_GATEWAY="${FIELDS[1]}"
+	    IPV4_DNS="${FIELDS[2]}"
+    	clear
+        echo "---- Local network settings ----"
+        echo
+        echo "1) Address ($IPV4_ADDRESSES)"
+        echo "2) Gateway IP ($IPV4_GATEWAY)"
+	echo "3) DNS IP ($IPV4_DNS)"
+	echo
+        read -r -p "Select [1-3] to modify. Enter any other key to quit: " opt
+        case $opt in
+            1) handle_update "IPv4 Address" "ipv4.addresses" ;;
+            2) handle_update "Gateway IP" "ipv4.gateway" ;;
+            3) handle_update "DNS IP" "ipv4.dns" ;;
+            *)
+		    break
+            ;;
+        esac
     done
 
-    case $choice in 
-            "y") save_config; echo "Settings saved" ;;
-            "")  echo "Must enter 'y' or 'n'" ;;
-            "*") echo "Settings not saved" ;;
-    esac 
+    ACTIVE=$(get_active_ethernet_connection)
+    if [ ! "${ACTIVE}" = "kramer" ]; then
+	    read -r -p "'kramer' is not the active network connection. Enable the 'kramer' network? y/n: " choice
+	    case $choice in
+		    'y') toggle_kramer_network "on" ;;
+		    *) ;;
+	    esac
+    fi
+}
 
-    read -r -p "Press [Enter] to continue"
+function toggle_kramer_network () {
+    if [ "${1}" = "on" ]; then
+        nmcli conn up kramer
+    elif [ "${1}" = "off" ]; then
+        nmcli conn down kramer
+    fi
+}
+
+function get_active_ethernet_connection () {
+    nmcli --get-value NAME,TYPE,STATE conn | awk -F : '/802-3-ethernet/{ if ($3 ~ /activated/) print $1 }'
+}
+
+function toggle_network_connections () {
+	while true; do
+		clear
+		mapfile -t CONNECTIONS < <(nmcli --get-value NAME,TYPE,STATE conn | awk -F : '/802-3-ethernet/{ printf "%s:%s:%s\n", $1, $2, $3 }')
+
+		i=1
+		NUM_CONNECTIONS="${#CONNECTIONS[@]}"
+		echo "---- Select Network Connection ----"
+		echo
+		for ROW in "${CONNECTIONS[@]}"; do
+			echo "${i}) $(echo $ROW | awk -F : '{ 
+				printf "%s", $1
+				if ($3 ~ /activated/) print " (active)" 
+			}')"
+			i=$((i+1))
+		done
+
+		read -r -p "Select [1-${MAX_I}]. Enter any other key to quit: " opt
+		if [ $opt -gt 0  ] && [ $opt -le $NUM_CONNECTIONS ]; then
+			CONN="${CONNECTIONS[$((opt - 1))]}"
+			NAME=$( echo "${CONNECTIONS[$((opt - 1))]}" | awk -F : '{ print $1 }' )
+			nmcli con up "${NAME}"
+			echo
+			read -r -p "[Enter] to continue"
+		else
+			break
+		fi
+		echo "Exiting"
+	done
 }
 
 function install_dependencies () {
-    # This requires sudo access
-    sudo apt update && sudo apt install -y chromium pcmanfm zutty
+	# Require root
+	if [ ! "$(id -u)" -eq 0 ]; then
+		echo "Dependencies must be installed as root. Re-run $0 with 'sudo'"
+		echo
+		read -r -p "Press [Enter] to continue" 
+	else
+		apt update && apt install -y chromium pcmanfm zutty
+	fi
 }
 
 
 function main () {
     while true; do 
         clear
+	
+    	# Get available ethernet connections
+        mapfile -t CONNECTIONS < <(nmcli --get-value NAME,TYPE conn | awk -F : '/802-3-ethernet/{ print $1 }')
+
+	# Get active connection
+	
+	ACTIVE=$(nmcli --get-value NAME,TYPE,STATE conn | awk -F : '/802-3-ethernet/{ if ($3 ~ /activated/) print $1 }')
+
+	echo "---- Automation Controller Setup ----"
         echo
-        echo "1) Set static IP"
-        echo "2) Set Kramer interface options"
-        # echo "3) Set Screen Timeout"
-        echo "3) Re-install Dependencies"
-        echo "4) Exit & Start App"
-        echo "5) Exit"
-
+	echo "1) Interface settings"
+        echo "2) Modify network settings"
+        echo "3) Toggle between available network connections"
+	for CONN in "${CONNECTIONS[@]}"; do
+		if [ "${CONN}" = "${ACTIVE}" ]; then
+			echo "	-> $CONN (active)"
+		else
+			echo "	   $CONN"
+		fi
+	done
+        echo "4) Re-install Dependencies"
+        echo "5) Exit & Start App"
+        echo "6) Exit"
+	echo
         read -r -p "Select [1-5]: " choice
-        case $choice in 
+        case $choice in
 
-            # Set this computer's static IP
-            1) set_host_ip ;;
+	    1) modify_interface_options ;;
 
-            # Set variables for kramer options
-            2) set_options ;;
+            2) modify_kramer_network_profile ;;
 
-            # 3) set_screen_timeout ;;
+            3) toggle_network_connections ;;
 
-            3) install_dependencies ;;
+            4) install_dependencies ;;
 
             # Start chromium and exit
-            4) 
+            5) 
                 clear
-                echo "Starting interface..."
+				confirm_toggle_network
                 zutty -e start_interface &
                 break
             ;;
 
             # Exit without starting chromium
-            5) 
+            6) 
                 clear 
-                echo "Exiting" 
                 break 
             ;;
 
@@ -211,6 +264,7 @@ function main () {
             ;;
         esac
     done
+	confirm_skip_setup
 }
 
 main
