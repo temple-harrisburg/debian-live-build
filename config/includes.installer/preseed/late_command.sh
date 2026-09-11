@@ -28,18 +28,14 @@ export USER_ROOT="home/$USER"
 export PRESEED_ROOT=""
 export TARGET_ROOT="/target"
 
+warn () {
+    echo "WARNING: $1 exited with code $2" >&2
+}
+
 run_scripts () {
     for SCRIPT in "${@}"; do
-        "${SCRIPT}"
+        "${SCRIPT}" || warn "${SCRIPT}" "${?}"
     done
-}
-
-preinst_hooks () {
-    run_scripts /preseed/hooks/presinst-profile.d/*.sh
-}
-
-postinst_hooks () {
-    run_scripts /preseed/hooks/postinst-profile.d/*.sh
 }
 
 install_profile () {
@@ -54,15 +50,23 @@ main() {
         exit 10
     fi
 
-    preinst_hooks || EXIT_CODE=$((EXIT_CODE+3))
+    run_scripts /preseed/hooks/preinst_profile.d/*.sh || echo "Failed to run pre-install scripts" >&2
 
-    install_profile "common" || EXIT_CODE=$((EXIT_CODE+3))
+    install_profile "common" || EXIT_CODE=$((EXIT_CODE+$?))
+    
+    # shellcheck disable=SC2086
+    run_scripts /preseed/hooks/pre_$1.d/*.sh || echo "Failed to run pre-install scripts for $1" >&2
 
-    install_profile "$1" || EXIT_CODE=$((EXIT_CODE+3))
+    install_profile "$1" || EXIT_CODE=$((EXIT_CODE+$?))
+    
+    # shellcheck disable=SC2086
+    run_scripts /preseed/hooks/post_$1.d/*.sh || echo "Failed to run post-install scripts for $1" >&2
 
-    postinst_hooks || EXIT_CODE=$((EXIT_CODE+3))
+    run_scripts /preseed/hooks/postinst_profile.d/*.sh || echo "Failed to run post-install scripts" >&2
 
-    exit $EXIT_CODE
+    # exit $EXIT_CODE
+    echo "late_command finished with exit code ${EXIT_CODE}" >&2
+    exit ${EXIT_CODE}
 }
 
 main "$@"
