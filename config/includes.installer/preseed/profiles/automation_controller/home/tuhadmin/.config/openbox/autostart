@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# 
+# $HOME/.config/openbox/autostart
+# 
+# This runs when the kiosk user logs in. Runs interactive setup on first login. 
+# After configuration is saved, it launches the chromium interface instead. 
+# Interactive setup can be run manually with `setup`.
+
+# Enable and start screensver (if not already running)
+systemctl enable --user --now screensaver.service &
+
+# Make sure config file is loaded
+if [ -f "${CONFIG_FILE:-"$HOME/.kramer_config"}" ]; then
+    # shellcheck disable=SC1090
+    . "$CONFIG_FILE"
+else
+    echo "WARNING: missing \"${CONFIG_FILE}\". The interface may not start correctly"
+fi
+
+# If SKIP_SETUP is unset or less than 1, enforce interactive setup
+if [ ! -v SKIP_SETUP ] || [ "${SKIP_SETUP:-0}" -lt 1 ]; then 
+    zutty -T "Kiosk Setup" -e setup
+else
+    start_interface # see /usr/bin/start_interface
+fi

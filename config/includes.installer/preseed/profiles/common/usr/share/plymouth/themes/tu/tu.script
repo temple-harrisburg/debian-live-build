@@ -1,0 +1,114 @@
+/*
+ * Temple University Plymouth Theme
+ * 
+ * Display the Temple 'T' logo as a splash screen
+ *
+ */
+
+Window.SetBackgroundTopColor(0.0, 0.0, 0.0);
+Window.SetBackgroundBottomColor(0.0, 0.0, 0.0);
+
+/*
+ *
+ * Temple T Logo
+ *
+ */
+
+logo.image = Image("logo.png");
+size = Math.Clamp(Window.GetHeight() / 4.5, 50, 500);
+logo.image = logo.image.Scale(size, size);
+
+logo.sprite = Sprite(logo.image);
+
+# Display T
+logo.sprite.SetX((Window.GetWidth() - logo.image.GetWidth()) / 2);
+logo.sprite.SetY((Window.GetHeight() - logo.image.GetHeight()) / 2);
+logo.sprite.SetZ(1000);
+logo.sprite.SetOpacity(1);
+
+/*
+ *
+ * Progress Bar
+ *
+ */
+
+# Load Gutter Images
+progress_gutter.image = Image("progress-gutter-grey.png");
+
+progress_gutter_cap_left.image = Image("progress-cap-left-grey.png");
+progress_gutter_cap_left.sprite = Sprite(progress_gutter_cap_left.image);
+
+progress_gutter_cap_right.image = Image("progress-cap-right-grey.png");
+progress_gutter_cap_right.sprite = Sprite(progress_gutter_cap_right.image);
+
+# Draw gutter
+progress_gutter.width = (Window.GetWidth() / 3) - (progress_gutter_cap_left.image.GetWidth( ) + progress_gutter_cap_right.image.GetWidth());
+progress_gutter.height = progress_gutter.image.GetHeight();
+progress_gutter.height = progress_gutter.image.GetHeight();
+progress_gutter.x = Window.GetWidth() / 3;
+progress_gutter.y = (Window.GetHeight() / 4) * 3;
+
+progress_gutter.sprite = Sprite(progress_gutter.image.Scale(progress_gutter.width - progress_gutter_cap_right.image.GetWidth(), progress_gutter.height));
+progress_gutter.sprite.SetX(progress_gutter.x + progress_gutter_cap_left.image.GetWidth());
+progress_gutter.sprite.SetY(progress_gutter.y);
+progress_gutter.sprite.SetZ(1000);
+progress_gutter.sprite.SetOpacity(1);
+
+# Draw gutter caps
+progress_gutter_cap_left.sprite.SetPosition(progress_gutter.x, progress_gutter.y, 1000);
+progress_gutter_cap_left.sprite.SetOpacity(1);
+
+progress_gutter_cap_right.sprite.SetPosition(progress_gutter.x + progress_gutter.width, progress_gutter.y, 1000);
+progress_gutter_cap_right.sprite.SetOpacity(1);
+
+# Draw progress bar
+progress_bar.image = Image("progress-gutter-white.png");
+progress_bar.sprite = Sprite(progress_bar.image);
+
+progress_bar_cap_left.image = Image("progress-cap-left-white.png");
+progress_bar_cap_left.sprite = Sprite(progress_bar_cap_left.image);
+progress_bar_cap_left.sprite.SetPosition(progress_gutter.x, progress_gutter.y, 1000);
+progress_bar_cap_left.sprite.SetOpacity(0);
+
+progress_bar_cap_right.image = Image("progress-cap-right-white.png");
+progress_bar_cap_right.sprite = Sprite(progress_bar_cap_right.image);
+progress_bar_cap_right.sprite.SetPosition(progress_gutter.x + progress_gutter.width, progress_gutter.y, 1000);
+progress_bar_cap_right.sprite.SetOpacity(0);
+
+progress_bar.sprite.SetPosition(progress_gutter.x + progress_bar_cap_left.image.GetWidth(), progress_gutter.y, 1000);
+progress_bar.sprite.SetOpacity (1);
+
+# percent.text = Image.Text("0%", 1.0, 1.0, 1.0, 1.0);
+# percent.sprite = Sprite(percent.text);
+# percent.sprite.SetPosition( (Window.GetWidth() - percent.text.GetWidth() ) / 2, 500, 1000);
+# percent.sprite.SetOpacity(1);
+
+/*
+ *
+ * Progress Callback
+ *
+ */
+
+fun progress_callback (time, progress) {
+    if (progress > 0)
+    {
+        progress_bar_cap_left.sprite.SetOpacity(1);
+    }
+
+    if (progress == 1)
+    {
+        progress_bar_cap_right.sprite.SetOpacity(1);
+    }
+
+    # Update percentage
+    # prtext = Math.Int (progress * 100) + "%";
+    # percent.text = Image.Text(prtext, 1.0, 1.0, 1.0, 1.0);
+    # percent.sprite.SetImage(percent.text);
+
+    # Scale progress bar
+    width = Math.Clamp(progress * (progress_gutter.width - progress_gutter_cap_right.image.GetWidth()), 1, progress_gutter.width);
+    progress_bar.image = progress_bar.image.Scale(width, progress_bar.image.GetHeight ( ) );
+    progress_bar.sprite.SetImage(progress_bar.image);
+}
+
+Plymouth.SetBootProgressFunction(progress_callback);

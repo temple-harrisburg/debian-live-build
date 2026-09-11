@@ -1,0 +1,2 @@
+GRUB_THEME=/usr/share/grub/themes/tu-grub/theme.txt
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"

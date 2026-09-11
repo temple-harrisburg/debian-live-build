@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Temple University
+Description=Display Temple 'T' Logo
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/tu
+ScriptFile=/usr/share/plymouth/themes/tu/tu.script

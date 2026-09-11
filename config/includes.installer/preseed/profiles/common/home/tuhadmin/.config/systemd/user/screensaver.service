@@ -1,0 +1,11 @@
+[Unit]
+Name=Fake Screensaver
+Description=Spoof a dismissable screensaver with FFMpeg
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/xidlehook --timer 60 'screensaver' ''
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
