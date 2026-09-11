@@ -8,6 +8,7 @@ build.log
 chroot.*
 binary*
 live-image-*.*
-config/{hooks,common,source,bootstrap}
 config/hooks
-config/{bootstrap,common,source}
+config/bootstrap
+config/common
+config/source
