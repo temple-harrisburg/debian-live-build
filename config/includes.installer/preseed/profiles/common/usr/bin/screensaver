@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+
+MESSAGE="${1:-"Tap to wake"}"
+
+[ ! -e "${HOME}/.NOSCREENSAVER" ] || exit 1
+ffmpeg -f lavfi -i "color=c=black:size=1920x1080" \
+    -filter_complex "[0:v]drawtext='fontcolor_expr=0xffffff%{eif\: 255*(0.5+(sin(t)/2)) \: x \: 2}:
+    fontsize=64:
+    x=(w-tw)/2:
+    y=(h-th)/2:
+    text=\'${MESSAGE}\'" \
+    -f matroska - | \
+ffplay -exitonkeydown -exitonmousedown -fs -fast -
