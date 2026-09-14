@@ -2,12 +2,15 @@
 
 MESSAGE="${1:-"Tap to wake"}"
 
+PERIOD=6.2831853 # 2π
+
 [ ! -e "${HOME}/.NOSCREENSAVER" ] || exit 1
 ffmpeg -f lavfi -i "color=c=black:size=1920x1080" \
-    -filter_complex "[0:v]drawtext='fontcolor_expr=0xffffff%{eif\: 255*(0.5+(sin(t)/2)) \: x \: 2}:
+    -filter_complex "[0:v]drawtext='fontcolor_expr=0xffffff%{eif\: 255*((cos(t)+1)/2) \: x \: 2}:
     fontsize=64:
     x=(w-tw)/2:
     y=(h-th)/2:
     text=\'${MESSAGE}\'" \
+    -t $PERIOD \
     -f matroska - | \
-ffplay -exitonkeydown -exitonmousedown -fs -fast -
+ffplay -exitonkeydown -exitonmousedown -fs -fast -loop 0 -
